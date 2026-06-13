@@ -105,7 +105,7 @@ export function useMediasoup({ sessionId, token }) {
       for (const p of existing) await consumeProducer(p);
     });
 
-    socket.on('newProducer', (data) => consumeProducer(data));
+    socket.on('newProducer', (data) => { console.log('NEW PRODUCER', data); consumeProducer(data); });
 
     socket.on('participantJoined', ({ userId, name, role }) => {
       setParticipants((p) => [...p.filter((x) => x.userId !== userId), { userId, name, role }]);
