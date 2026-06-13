@@ -30,11 +30,18 @@ export function useMediasoup({ sessionId, token }) {
   if (params.error) return;
 
   const consumer = await recvTransportRef.current.consume(params);
+  await emit('resumeConsumer', { consumerId: consumer.id });
 
   setRemoteStreams((prev) => {
-    const existing = prev[userId] ? prev[userId].clone() : new MediaStream();
-    existing.addTrack(consumer.track);
-    return { ...prev, [userId]: existing };
+    const stream = new MediaStream();
+    // Keep existing tracks from other kinds
+    if (prev[userId]) {
+      prev[userId].getTracks().forEach(t => {
+        if (t.kind !== consumer.track.kind) stream.addTrack(t);
+      });
+    }
+    stream.addTrack(consumer.track);
+    return { ...prev, [userId]: stream };
   });
 }, []);
 

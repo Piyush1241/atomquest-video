@@ -150,7 +150,13 @@ async function initSocket(server) {
         cb({ error: err.message });
       }
     });
-
+    socket.on('resumeConsumer', async ({ consumerId }, cb) => {
+  const safeCb = typeof cb === 'function' ? cb : () => {};
+  const room = rooms.get(sessionId);
+  const consumer = room?.consumers?.get(consumerId);
+  if (consumer) await consumer.resume();
+  safeCb({ ok: true });
+    });
     socket.on('getProducers', (data, cb) => {
       if (typeof data === 'function') cb = data;
       cb = safeCb(cb);
