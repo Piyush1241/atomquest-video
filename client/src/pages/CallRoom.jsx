@@ -4,7 +4,7 @@ import useAuthStore from '../store/authStore';
 import { useMediasoup } from '../hooks/useMediasoup';
 import ChatPanel from '../components/ChatPanel';
 import NetworkBadge from '../components/NetworkBadge';
-import axios from 'axios';
+import api from '../api';
 
 export default function CallRoom() {
   const { sessionId } = useParams();
@@ -30,7 +30,7 @@ export default function CallRoom() {
 
   const endCall = async () => {
     if (user.role === 'agent') {
-      await axios.post(`/api/sessions/${sessionId}/end`, {}, {
+      await api.post(`/api/sessions/${sessionId}/end`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
     }

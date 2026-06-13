@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 export default function ChatPanel({ messages, onSend, user, token }) {
   const [text, setText] = useState('');
@@ -18,7 +18,7 @@ export default function ChatPanel({ messages, onSend, user, token }) {
     if (!file) return;
     const form = new FormData();
     form.append('file', file);
-    const { data } = await axios.post('/api/upload', form, {
+    const { data } = await api.post('/api/upload', form, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
     });
     onSend('', data.fileUrl, data.fileName, 'file');

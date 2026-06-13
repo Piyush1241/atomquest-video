@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import useAuthStore from '../store/authStore';
 
 export default function AdminDashboard() {
@@ -7,7 +7,7 @@ export default function AdminDashboard() {
   const [sessions, setSessions] = useState([]);
 
   const fetchSessions = () =>
-    axios.get('/api/sessions', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/api/sessions', { headers: { Authorization: `Bearer ${token}` } })
       .then(({ data }) => setSessions(data));
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   }, []);
 
   const forceEnd = async (sessionId) => {
-    await axios.post(`/api/sessions/${sessionId}/force-end`, {}, { headers: { Authorization: `Bearer ${token}` } });
+    await api.post(`/api/sessions/${sessionId}/force-end`, {}, { headers: { Authorization: `Bearer ${token}` } });
     fetchSessions();
   };
 

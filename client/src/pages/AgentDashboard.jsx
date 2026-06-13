@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import useAuthStore from '../store/authStore';
 
 export default function AgentDashboard() {
@@ -11,13 +11,13 @@ export default function AgentDashboard() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    axios.get('/api/sessions', { headers: { Authorization: `Bearer ${token}` } })
+    api.get('/api/sessions', { headers: { Authorization: `Bearer ${token}` } })
       .then(({ data }) => setSessions(data));
   }, []);
 
   const createSession = async () => {
     setLoading(true);
-    const { data } = await axios.post('/api/sessions', {}, { headers: { Authorization: `Bearer ${token}` } });
+    const { data } = await api.post('/api/sessions', {}, { headers: { Authorization: `Bearer ${token}` } });
     setInviteUrl(data.inviteUrl);
     setSessions((prev) => [data.session, ...prev]);
     setLoading(false);

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 export default function JoinPage() {
   const { token } = useParams();
@@ -10,7 +10,7 @@ export default function JoinPage() {
   const [name, setName] = useState('');
 
   useEffect(() => {
-    axios.get(`/api/sessions/invite/${token}`)
+    api.get(`/api/sessions/invite/${token}`)
       .then(({ data }) => { setInfo(data); setName(data.name || ''); })
       .catch(() => setError('This invite link is invalid or has expired.'));
   }, [token]);
