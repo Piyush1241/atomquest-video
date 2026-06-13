@@ -56,6 +56,7 @@ export function useMediasoup({ sessionId, token }) {
     socketRef.current = socket;
 
     socket.on('connect', async () => {
+      console.log('SOCKET CONNECTED', socket.id);
       setConnected(true);
 
       // 1. Get router RTP capabilities
@@ -100,6 +101,7 @@ export function useMediasoup({ sessionId, token }) {
 
       // 7. Consume existing producers
       const existing = await emit('getProducers');
+      console.log('EXISTING PRODUCERS', existing);
       for (const p of existing) await consumeProducer(p);
     });
 
