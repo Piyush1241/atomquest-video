@@ -25,22 +25,26 @@ export function useMediasoup({ sessionId, token }) {
     new Promise((res) => socketRef.current?.emit(event, data, res));
 
   const consumeProducer = useCallback(async ({ producerId, userId, name, kind }) => {
+  console.log('consumeProducer called', { producerId, userId, kind });
   const rtpCapabilities = deviceRef.current?.rtpCapabilities;
   const params = await emit('consume', { producerId, rtpCapabilities });
-  if (params.error) return;
-
+  console.log('consume params', params);
+  if (!params || params.error) {
+    console.error('consume error', params?.error);
+    return;
+  }
   const consumer = await recvTransportRef.current.consume(params);
-  await emit('resumeConsumer', { consumerId: consumer.id });
+  console.log('consumer created', consumer.track);
 
   setRemoteStreams((prev) => {
     const stream = new MediaStream();
-    // Keep existing tracks from other kinds
     if (prev[userId]) {
       prev[userId].getTracks().forEach(t => {
         if (t.kind !== consumer.track.kind) stream.addTrack(t);
       });
     }
     stream.addTrack(consumer.track);
+    console.log('stream tracks', stream.getTracks());
     return { ...prev, [userId]: stream };
   });
 }, []);
