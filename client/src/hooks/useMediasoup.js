@@ -25,18 +25,18 @@ export function useMediasoup({ sessionId, token }) {
     new Promise((res) => socketRef.current?.emit(event, data, res));
 
   const consumeProducer = useCallback(async ({ producerId, userId, name, kind }) => {
-    const rtpCapabilities = deviceRef.current?.rtpCapabilities;
-    const params = await emit('consume', { producerId, rtpCapabilities });
-    if (params.error) return;
+  const rtpCapabilities = deviceRef.current?.rtpCapabilities;
+  const params = await emit('consume', { producerId, rtpCapabilities });
+  if (params.error) return;
 
-    const consumer = await recvTransportRef.current.consume(params);
+  const consumer = await recvTransportRef.current.consume(params);
 
-    setRemoteStreams((prev) => {
-      const existing = prev[userId] || new MediaStream();
-      existing.addTrack(consumer.track);
-      return { ...prev, [userId]: existing };
-    });
-  }, []);
+  setRemoteStreams((prev) => {
+    const existing = prev[userId] ? prev[userId].clone() : new MediaStream();
+    existing.addTrack(consumer.track);
+    return { ...prev, [userId]: existing };
+  });
+}, []);
 
   useEffect(() => {
     if (!sessionId || !token) return;
