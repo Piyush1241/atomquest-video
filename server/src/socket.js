@@ -30,6 +30,9 @@ async function initSocket(server) {
     const token = socket.handshake.auth.token;
     const user = verifyToken(token);
     if (!user) return next(new Error('Unauthorized'));
+    if (!user.sessionId && socket.handshake.auth.sessionId) {
+      user.sessionId = socket.handshake.auth.sessionId;
+    }
     socket.user = user;
     next();
   });
@@ -77,7 +80,7 @@ async function initSocket(server) {
             { urls: 'turn:global.relay.metered.ca:443', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
             { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
           ],
-      });
+        });
 
         if (!room.peers.has(userId)) {
           room.peers.set(userId, { name, role, transports: {}, producers: [], consumers: [] });
@@ -119,14 +122,12 @@ async function initSocket(server) {
         const transport = peer?.transports['send'];
         const producer = await transport.produce({ kind, rtpParameters, appData });
         peer.producers.push(producer);
-
         socket.to(sessionId).emit('newProducer', {
           producerId: producer.id,
           userId,
           name,
           kind,
         });
-
         cb({ id: producer.id });
       } catch (err) {
         cb({ error: err.message });
@@ -146,7 +147,6 @@ async function initSocket(server) {
         const transport = peer?.transports['recv'];
         const consumer = await transport.consume({ producerId, rtpCapabilities, paused: false });
         peer.consumers.push(consumer);
-
         cb({
           id: consumer.id,
           producerId,
@@ -157,20 +157,24 @@ async function initSocket(server) {
         cb({ error: err.message });
       }
     });
+
     socket.on('resumeConsumer', async (data, cb) => {
-  if (typeof data === 'function') { cb = data; data = {}; }
-  const safeCb = typeof cb === 'function' ? cb : () => {};
-  try {
-    const { consumerId } = data;
-    const room = rooms.get(sessionId);
-    const peer = room?.peers ? [...room.peers.values()].find(p => p.consumers.find(c => c.id === consumerId)) : null;
-    const consumer = peer?.consumers.find(c => c.id === consumerId);
-    if (consumer) await consumer.resume();
-    safeCb({ ok: true });
-  } catch (err) {
-    safeCb({ error: err.message });
-  }
-});
+      if (typeof data === 'function') { cb = data; data = {}; }
+      const _cb = safeCb(cb);
+      try {
+        const { consumerId } = data;
+        const room = getRoom(sessionId);
+        const peer = room?.peers
+          ? [...room.peers.values()].find(p => p.consumers.find(c => c.id === consumerId))
+          : null;
+        const consumer = peer?.consumers.find(c => c.id === consumerId);
+        if (consumer) await consumer.resume();
+        _cb({ ok: true });
+      } catch (err) {
+        _cb({ error: err.message });
+      }
+    });
+
     socket.on('getProducers', (data, cb) => {
       if (typeof data === 'function') cb = data;
       cb = safeCb(cb);
