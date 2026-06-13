@@ -71,7 +71,7 @@ export function useMediasoup({ sessionId, token }) {
 
       // 3. Create send transport
       const sendParams = await emit('createTransport', { direction: 'send' });
-      const sendTransport = device.createSendTransport(sendParams);
+      const sendTransport = device.createSendTransport({ ...sendParams, iceServers: sendParams.iceServers });
       sendTransportRef.current = sendTransport;
 
       sendTransport.on('connect', ({ dtlsParameters }, cb) => {
@@ -83,7 +83,7 @@ export function useMediasoup({ sessionId, token }) {
 
       // 4. Create recv transport
       const recvParams = await emit('createTransport', { direction: 'recv' });
-      const recvTransport = device.createRecvTransport(recvParams);
+      const recvTransport = device.createRecvTransport({ ...recvParams, iceServers: recvParams.iceServers });
       recvTransportRef.current = recvTransport;
 
       recvTransport.on('connect', ({ dtlsParameters }, cb) => {
