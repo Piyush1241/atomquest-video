@@ -8,8 +8,21 @@ const metricsRoutes = require('./routes/metrics');
 const uploadRoutes = require('./routes/upload');
 
 const app = express();
+import axios from 'axios';
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_SERVER_URL || '',
+  headers: {
+    'ngrok-skip-browser-warning': 'true',
+  },
+});
+
+export default api;
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use((req, res, next) => {
+  res.setHeader('ngrok-skip-browser-warning', 'true');
+  next();
+});
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
