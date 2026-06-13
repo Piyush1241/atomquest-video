@@ -10,14 +10,16 @@ export function useMediasoup({ sessionId, token }) {
   const sendTransportRef = useRef(null);
   const recvTransportRef = useRef(null);
   const localStreamRef = useRef(null);
+  const pendingProducers = useRef([]);
+  const recvReady = useRef(false);
 
   const [localStream, setLocalStream] = useState(null);
-  const [remoteStreams, setRemoteStreams] = useState({}); // userId -> MediaStream
+  const [remoteStreams, setRemoteStreams] = useState({});
   const [connected, setConnected] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [recordingStatus, setRecordingStatus] = useState('idle');
-  const [networkQuality, setNetworkQuality] = useState(3); // 1-3 bars
+  const [networkQuality, setNetworkQuality] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
 
@@ -25,29 +27,29 @@ export function useMediasoup({ sessionId, token }) {
     new Promise((res) => socketRef.current?.emit(event, data, res));
 
   const consumeProducer = useCallback(async ({ producerId, userId, name, kind }) => {
-  console.log('consumeProducer called', { producerId, userId, kind });
-  const rtpCapabilities = deviceRef.current?.rtpCapabilities;
-  const params = await emit('consume', { producerId, rtpCapabilities });
-  console.log('consume params', params);
-  if (!params || params.error) {
-    console.error('consume error', params?.error);
-    return;
-  }
-  const consumer = await recvTransportRef.current.consume(params);
-  console.log('consumer created', consumer.track);
-
-  setRemoteStreams((prev) => {
-    const stream = new MediaStream();
-    if (prev[userId]) {
-      prev[userId].getTracks().forEach(t => {
-        if (t.kind !== consumer.track.kind) stream.addTrack(t);
-      });
+    console.log('consumeProducer called', { producerId, userId, kind });
+    const rtpCapabilities = deviceRef.current?.rtpCapabilities;
+    const params = await emit('consume', { producerId, rtpCapabilities });
+    console.log('consume params', params);
+    if (!params || params.error) {
+      console.error('consume error', params?.error);
+      return;
     }
-    stream.addTrack(consumer.track);
-    console.log('stream tracks', stream.getTracks());
-    return { ...prev, [userId]: stream };
-  });
-}, []);
+    const consumer = await recvTransportRef.current.consume(params);
+    console.log('consumer created', consumer.track);
+
+    setRemoteStreams((prev) => {
+      const stream = new MediaStream();
+      if (prev[userId]) {
+        prev[userId].getTracks().forEach(t => {
+          if (t.kind !== consumer.track.kind) stream.addTrack(t);
+        });
+      }
+      stream.addTrack(consumer.track);
+      console.log('stream tracks', stream.getTracks());
+      return { ...prev, [userId]: stream };
+    });
+  }, []);
 
   useEffect(() => {
     if (!sessionId || !token) return;
@@ -88,6 +90,11 @@ export function useMediasoup({ sessionId, token }) {
         emit('connectTransport', { direction: 'recv', dtlsParameters }).then(cb);
       });
 
+      // Mark recv transport as ready and drain any buffered producers
+      recvReady.current = true;
+      for (const p of pendingProducers.current) await consumeProducer(p);
+      pendingProducers.current = [];
+
       // 5. Get local media
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
       localStreamRef.current = stream;
@@ -105,7 +112,14 @@ export function useMediasoup({ sessionId, token }) {
       for (const p of existing) await consumeProducer(p);
     });
 
-    socket.on('newProducer', (data) => { console.log('NEW PRODUCER', data); consumeProducer(data); });
+    socket.on('newProducer', (data) => {
+      console.log('NEW PRODUCER', data);
+      if (recvReady.current) {
+        consumeProducer(data);
+      } else {
+        pendingProducers.current.push(data);
+      }
+    });
 
     socket.on('participantJoined', ({ userId, name, role }) => {
       setParticipants((p) => [...p.filter((x) => x.userId !== userId), { userId, name, role }]);
@@ -130,17 +144,17 @@ export function useMediasoup({ sessionId, token }) {
 
     socket.on('disconnect', () => setConnected(false));
 
-    // Network quality polling via getStats
     const statsInterval = setInterval(async () => {
       if (!sendTransportRef.current) return;
       try {
-        // Simple heuristic: check if connected
         setNetworkQuality(connected ? 3 : 1);
       } catch {}
     }, 5000);
 
     return () => {
       clearInterval(statsInterval);
+      recvReady.current = false;
+      pendingProducers.current = [];
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       socket.disconnect();
     };
