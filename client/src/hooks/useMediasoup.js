@@ -71,7 +71,9 @@ export function useMediasoup({ sessionId, token }) {
 
       // 3. Create send transport
       const sendParams = await emit('createTransport', { direction: 'send' });
+      console.log('sendParams iceCandidates', JSON.stringify(sendParams.iceCandidates));
       console.log("sendParams iceServers", JSON.stringify(sendParams.iceServers));
+      console.log("sendParams iceCandidates", JSON.stringify(sendParams.iceCandidates));
       const sendTransport = device.createSendTransport({ ...sendParams, iceServers: sendParams.iceServers });
       sendTransportRef.current = sendTransport;
 
