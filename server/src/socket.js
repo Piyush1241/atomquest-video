@@ -67,7 +67,7 @@ async function initSocket(server) {
         const room = await getOrCreateRoom(sessionId);
         const transport = await room.router.createWebRtcTransport({
           listenIps: [{ ip: '0.0.0.0', announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP || '127.0.0.1' }],
-          enableUdp: false,
+          enableUdp: true,
           enableTcp: true,
           preferUdp: true,
         });
