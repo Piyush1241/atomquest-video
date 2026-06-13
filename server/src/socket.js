@@ -70,9 +70,9 @@ async function initSocket(server) {
         const room = await getOrCreateRoom(sessionId);
         const transport = await room.router.createWebRtcTransport({
           listenIps: [{ ip: '0.0.0.0', announcedIp: '69.46.46.31' }],
-          enableUdp: true,
+          enableUdp: false,
           enableTcp: true,
-          preferUdp: true,
+          preferTcp: true,
         });
 
         if (!room.peers.has(userId)) {
