@@ -150,13 +150,20 @@ async function initSocket(server) {
         cb({ error: err.message });
       }
     });
-    socket.on('resumeConsumer', async ({ consumerId }, cb) => {
+    socket.on('resumeConsumer', async (data, cb) => {
+  if (typeof data === 'function') { cb = data; data = {}; }
   const safeCb = typeof cb === 'function' ? cb : () => {};
-  const room = rooms.get(sessionId);
-  const consumer = room?.consumers?.get(consumerId);
-  if (consumer) await consumer.resume();
-  safeCb({ ok: true });
-    });
+  try {
+    const { consumerId } = data;
+    const room = rooms.get(sessionId);
+    const peer = room?.peers ? [...room.peers.values()].find(p => p.consumers.find(c => c.id === consumerId)) : null;
+    const consumer = peer?.consumers.find(c => c.id === consumerId);
+    if (consumer) await consumer.resume();
+    safeCb({ ok: true });
+  } catch (err) {
+    safeCb({ error: err.message });
+  }
+});
     socket.on('getProducers', (data, cb) => {
       if (typeof data === 'function') cb = data;
       cb = safeCb(cb);
