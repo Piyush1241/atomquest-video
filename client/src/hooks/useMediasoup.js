@@ -52,7 +52,7 @@ export function useMediasoup({ sessionId, token }) {
   useEffect(() => {
     if (!sessionId || !token) return;
 
-    const socket = io(SERVER_URL, { auth: { token } });
+    const socket = io(SERVER_URL, { auth: { token, sessionId } });
     socketRef.current = socket;
 
     socket.on('connect', async () => {
