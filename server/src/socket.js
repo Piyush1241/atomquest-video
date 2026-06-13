@@ -86,12 +86,12 @@ async function initSocket(server) {
           iceCandidates: transport.iceCandidates,
           dtlsParameters: transport.dtlsParameters,
           iceServers: [
-            { urls: 'stun:stun.relay.metered.ca:80' },
-            { urls: 'turn:global.relay.metered.ca:80', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turn:global.relay.metered.ca:443', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-          ],
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  { urls: 'turn:global.relay.metered.ca:80', username: '0a20d1fef4b9dd3d9fa0ca93', credential: 'R0Tk4lQXPHv5cuS3' },
+  { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: '0a20d1fef4b9dd3d9fa0ca93', credential: 'R0Tk4lQXPHv5cuS3' },
+  { urls: 'turn:global.relay.metered.ca:443', username: '0a20d1fef4b9dd3d9fa0ca93', credential: 'R0Tk4lQXPHv5cuS3' },
+  { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: '0a20d1fef4b9dd3d9fa0ca93', credential: 'R0Tk4lQXPHv5cuS3' },
+],
         });
       } catch (err) {
         cb({ error: err.message });
