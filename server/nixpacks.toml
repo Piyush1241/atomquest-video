@@ -1,2 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_18", "python3", "gcc", "gnumake"]
+nixPkgs = ["nodejs_18", "python3", "gcc", "gnumake", "pkg-config"]
+
+[phases.install]
+cmds = ["npm ci --prefix server"]
+
+[phases.build]
+cmds = ["npm rebuild mediasoup --prefix server"]
