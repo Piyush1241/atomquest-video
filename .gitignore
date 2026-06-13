@@ -1,0 +1,5 @@
+node_modules
+.env
+git remote add origin https://github.com/Piyush1241/atomquest-video.git
+git branch -M main
+git push -u origin main

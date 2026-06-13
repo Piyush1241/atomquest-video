@@ -1,4 +1,6 @@
 {
+  "build": "cd server && npm install",
+  "postinstall": "npx mediasoup-worker-prebuilt || true",
   "name": "atomquest-video-client",
   "version": "1.0.0",
   "scripts": {
