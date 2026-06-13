@@ -73,13 +73,6 @@ async function initSocket(server) {
           enableUdp: true,
           enableTcp: true,
           preferUdp: true,
-          iceServers: [
-            { urls: 'stun:stun.relay.metered.ca:80' },
-            { urls: 'turn:global.relay.metered.ca:80', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turn:global.relay.metered.ca:443', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-            { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
-          ],
         });
 
         if (!room.peers.has(userId)) {
@@ -92,6 +85,13 @@ async function initSocket(server) {
           iceParameters: transport.iceParameters,
           iceCandidates: transport.iceCandidates,
           dtlsParameters: transport.dtlsParameters,
+          iceServers: [
+            { urls: 'stun:stun.relay.metered.ca:80' },
+            { urls: 'turn:global.relay.metered.ca:80', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
+            { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
+            { urls: 'turn:global.relay.metered.ca:443', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
+            { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: process.env.TURN_USERNAME, credential: process.env.TURN_CREDENTIAL },
+          ],
         });
       } catch (err) {
         cb({ error: err.message });
